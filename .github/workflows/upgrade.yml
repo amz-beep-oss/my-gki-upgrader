@@ -6,13 +6,13 @@ jobs:
   build-kernel:
     runs-on: ubuntu-latest
     steps:
-      - name: Install Pure Cross-Compiler Tools
+      - name: Install System Utilities
         run: |
           sudo apt-get clean
           sudo apt-get update
-          sudo apt-get install -y bc bison flex libssl-dev crossbuild-essential-arm64 git libelf-dev curl python3 clang llvm lld
+          sudo apt-get install -y bc bison flex libssl-dev crossbuild-essential-arm64 git libelf-dev curl python3 lz4 zstd ccache
 
-      - name: Clone Official Android 15 Kernel Source
+      - name: Clone GKI Kernel Core via Official Checkout
         uses: actions/checkout@v4
         with:
           repository: aosp-mirror-neo/kernel_common
@@ -20,16 +20,22 @@ jobs:
           path: common
           fetch-depth: 1
 
-      - name: Run Direct Hardware Build Engine
+      - name: Clone Google Kleaf Bazel Tools via Official Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: aosp-mirror-neo/kernel_build
+          ref: main
+          path: build
+          fetch-depth: 1
+
+      - name: Compile via Official Google Bazel Engine
         run: |
-          cd common
-          echo "CONFIG_MODVERSIONS=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_MODULE_FORCE_LOAD=y" >> arch/arm64/configs/gki_defconfig
-          make O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang HOSTCC=clang LINKER=ld.lld gki_defconfig
-          make O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang HOSTCC=clang LINKER=ld.lld -j$(nproc)
+          export REPO_URL="https://googlesource.com"
+          export GLOBS_URL="https://googlesource.com"
+          build/kernel/kleaf/bazel.sh --output_user_root=$GITHUB_WORKSPACE/bazel_root run //common:kernel_aarch64_dist -- --kconfig_add CONFIG_MODVERSIONS=y --kconfig_add CONFIG_MODULE_FORCE_LOAD=y
 
       - name: Upload Finished GKI Image
         uses: actions/upload-artifact@v4
         with:
           name: Clean-GKI-Image
-          path: common/out/arch/arm64/boot/Image.gz
+          path: out/android15-6.6/dist/Image.gz
