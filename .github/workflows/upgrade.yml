@@ -1,4 +1,4 @@
-name: GKI Pure Subversion Upgrade (Android 16)
+name: GKI Pure Subversion Upgrade (Android 16 Fix)
 on:
   workflow_dispatch:
 
@@ -13,13 +13,36 @@ jobs:
           remove-dotnet: 'true'
           remove-android: 'true'
 
-      - name: Run GKI Kernel Build Action
-        uses: dabao1955/kernel_build_action@main
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bc bison flex libssl-dev crossbuild-essential-arm64 git libelf-dev
+
+      - name: Clone Official Android 15 Kernel Source
+        run: |
+          # Sürücü KMI uyumluluğunu korumak için senin ana dalın olan android15-6.6 kodunu çekiyoruz
+          git clone https://googlesource.com --depth=1 -b android15-6.6
+          
+      - name: Download Google Official Clang Compiler
+        run: |
+          # 400 hatasını aşmak için Google'ın her sürümde çalışan ana kararlı Clang dalını el ile çekiyoruz
+          git clone https://googlesource.com --depth=1 -b main clang-llvm
+
+      - name: Run Clean Kernel Compilation
+        run: |
+          cd common
+          
+          echo "CONFIG_MODVERSIONS=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_MODULE_FORCE_LOAD=y" >> arch/arm64/configs/gki_defconfig
+          
+          # Çapraz derleyicinin (Clang) yolunu Ubuntu sistemine tanıtıyoruz
+          export PATH=$GITHUB_WORKSPACE/clang-llvm/clang-stable/bin:$PATH
+          
+          make O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang gki_defconfig
+          make O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang -j$(nproc)
+
+      - name: Upload Finished GKI Image
+        uses: actions/upload-artifact@v4
         with:
-          kernel-url: https://googlesource.com
-          kernel-branch: android15-6.6
-          config: gki_defconfig
-          arch: arm64
-          android-version: 16
-          aosp-clang: true
-          aosp-gcc: true
+          name: Clean-GKI-Image
+          path: common/out/arch/arm64/boot/Image.gz
