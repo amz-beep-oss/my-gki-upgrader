@@ -30,10 +30,9 @@ jobs:
 
       - name: Create Absolute Execution Symlinks
         run: |
+          chmod +x $GITHUB_WORKSPACE/build/kernel/kleaf/bazel.sh
           mkdir -p tools
           ln -sf $GITHUB_WORKSPACE/build/kernel/kleaf/bazel.sh tools/bazel
-          chmod +x tools/bazel
-          chmod +x $GITHUB_WORKSPACE/build/kernel/kleaf/bazel.sh
 
       - name: Compile via Official Google Bazel Engine
         run: |
