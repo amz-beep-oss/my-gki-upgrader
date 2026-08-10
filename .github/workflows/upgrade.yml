@@ -20,9 +20,13 @@ jobs:
           path: common
           fetch-depth: 1
 
-      - name: Download Official Clang Compiler
-        run: |
-          git clone https://googlesource.com --depth=1 -b main clang-llvm
+      - name: Clone Google Official Clang via Official Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: aosp-mirror-neo/platform_prebuilts_clang_host_linux-x86
+          ref: main
+          path: clang-llvm
+          fetch-depth: 1
 
       - name: Compile Custom GKI Kernel
         run: |
