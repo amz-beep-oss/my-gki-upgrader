@@ -39,12 +39,13 @@ jobs:
           chmod +x tools/bazel
           chmod +x build/kleaf/bazel.sh
 
-      - name: Patch Bazel to Use System Python
+      - name: Mock Google Prebuilt Python Path
         run: |
           cd workspace
-          # Replace Google's missing prebuilt python path with the system python path
-          sed -i 's|"${ROOT_DIR}/prebuilts/build-tools/linux_musl-x86/bin/py3-cmd"|"/usr/bin/python3"|g' tools/bazel
-          sed -i 's|"${ROOT_DIR}/prebuilts/build-tools/linux_musl-x86/bin/py3-cmd"|"/usr/bin/python3"|g' build/kleaf/bazel.sh
+          # Physically create the folder structure Google's script is hunting for
+          mkdir -p tools/prebuilts/build-tools/linux_musl-x86/bin/
+          # Create a link from their expected file path directly to the runner's real Python3
+          ln -sf /usr/bin/python3 tools/prebuilts/build-tools/linux_musl-x86/bin/py3-cmd
 
       - name: Inject Strict Sub-Version Spoofing
         run: |
