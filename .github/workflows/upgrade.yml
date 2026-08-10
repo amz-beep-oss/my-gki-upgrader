@@ -6,19 +6,30 @@ jobs:
   build-kernel:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
       - name: Install Dependencies
         run: |
           sudo apt-get clean
           sudo apt-get update
           sudo apt-get install -y bc bison flex libssl-dev crossbuild-essential-arm64 git libelf-dev curl python3
 
-      - name: Download Pure GKI Source and Build Tools
+      - name: Clone Kernel Common Source via Official Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: aosp-mirror-neo/kernel_common
+          ref: android15-6.6-lts
+          path: common
+          depth: 1
+
+      - name: Clone Kernel Build Tools via Official Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: aosp-mirror-neo/kernel_build
+          ref: android15-6.6-lts
+          path: build
+          depth: 1
+
+      - name: Download Official Clang Compiler
         run: |
-          git clone https://github.com --depth=1 -b android15-6.6-lts common
-          git clone https://github.com --depth=1 -b android15-6.6-lts build
           git clone https://googlesource.com --depth=1 -b main clang-llvm
 
       - name: Compile Custom GKI Kernel
