@@ -12,33 +12,33 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y bc bison flex libssl-dev crossbuild-essential-arm64 git libelf-dev curl python3 lz4 zstd ccache
 
-      - name: Clone GKI Kernel Core via Official Checkout
-        uses: actions/checkout@v4
-        with:
-          repository: aosp-mirror-neo/kernel_common
-          ref: android15-6.6-lts
-          path: common
-          fetch-depth: 1
-
-      - name: Clone Google Kleaf Bazel Tools via Official Checkout
-        uses: actions/checkout@v4
-        with:
-          repository: aosp-mirror-neo/kernel_build
-          ref: main
-          path: build
-          fetch-depth: 1
-
-      - name: Create Absolute Execution Symlinks
+      - name: Create Clean Workspace Tree
         run: |
-          chmod +x $GITHUB_WORKSPACE/build/kernel/kleaf/bazel.sh
-          mkdir -p tools
-          ln -sf $GITHUB_WORKSPACE/build/kernel/kleaf/bazel.sh tools/bazel
+          mkdir -p workspace/tools
+          cd workspace
+          
+          git clone --depth=1 -b android15-6.6-lts https://github.com common
+          git clone --depth=1 -b main https://github.com build
+          
+          cp build/kernel/kleaf/bazel.sh tools/bazel
+          chmod +x tools/bazel
+
+      - name: Inject Strict Sub-Version Spoofing
+        run: |
+          cd workspace/common
+          sed -i 's/SUBLEVEL = .*/SUBLEVEL = 89/' Makefile
+          echo "-android15-8-g8e4be6b47e40-ab14134548-4k" > localversion-gki
 
       - name: Compile via Official Google Bazel Engine
         run: |
+          cd workspace
           export REPO_URL="https://googlesource.com"
           export GLOBS_URL="https://googlesource.com"
+          
           ./tools/bazel --output_user_root=$GITHUB_WORKSPACE/bazel_root run \
+            --sandbox_debug \
+            --no-sandbox \
+            --spawn_strategy=local \
             --kconfig_add=CONFIG_MODVERSIONS=y \
             --kconfig_add=CONFIG_MODULE_FORCE_LOAD=y \
             //common:kernel_aarch64_dist
@@ -47,4 +47,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Clean-GKI-Image
-          path: out/android15-6.6/dist/Image.gz
+          path: workspace/out/android15-6.6/dist/Image.gz
