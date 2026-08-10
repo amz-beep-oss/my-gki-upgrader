@@ -22,8 +22,8 @@ jobs:
           mkdir -p bin
           curl -s "https://googlesource.com" | base64 -d > bin/repo
           chmod a+x bin/repo
-          ../bin/repo init --depth=1 --no-repo-verify --repo-url=https://googlesource.com -u https://googlesource.com -b common-android15-6.6-lts
-          ../bin/repo sync -c -j$(nproc --all) --no-tags --fail-fast
+          ./bin/repo init --depth=1 --no-repo-verify --repo-url=https://googlesource.com -u https://googlesource.com -b common-android15-6.6-lts
+          ./bin/repo sync -c -j$(nproc --all) --no-tags --fail-fast
 
       - name: Hack Kernel Config & Compile via Bazel
         run: |
