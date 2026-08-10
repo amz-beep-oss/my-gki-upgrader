@@ -22,23 +22,19 @@ jobs:
           mkdir -p bin
           curl -s "https://googlesource.com" | base64 -d > bin/repo
           chmod a+x bin/repo
-          mkdir android-kernel
-          cd android-kernel
           ../bin/repo init --depth=1 --no-repo-verify --repo-url=https://googlesource.com -u https://googlesource.com -b common-android15-6.6-lts
           ../bin/repo sync -c -j$(nproc --all) --no-tags --fail-fast
 
       - name: Hack Kernel Config & Compile via Bazel
         run: |
-          cd android-kernel/common
-          echo "CONFIG_MODVERSIONS=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_MODULE_FORCE_LOAD=y" >> arch/arm64/configs/gki_defconfig
-          cd ..
+          echo "CONFIG_MODVERSIONS=y" >> kernel/common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_MODULE_FORCE_LOAD=y" >> kernel/common/arch/arm64/configs/gki_defconfig
           export REPO_URL="https://googlesource.com"
           export GLOBS_URL="https://googlesource.com"
-          tools/bazel --output_user_root=$GITHUB_WORKSPACE/bazel_root run //common:kernel_aarch64_dist
+          tools/bazel --output_user_root=$GITHUB_WORKSPACE/bazel_root run //kernel/common:kernel_aarch64_dist
 
       - name: Upload Finished GKI Image
         uses: actions/upload-artifact@v4
         with:
           name: Clean-GKI-Image
-          path: android-kernel/out/android15-6.6/dist/Image.gz
+          path: out/android15-6.6/dist/Image.gz
