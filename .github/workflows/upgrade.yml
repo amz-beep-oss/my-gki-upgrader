@@ -24,16 +24,18 @@ jobs:
           git config --global user.email "actions@github.com"
           mkdir android-kernel
           cd android-kernel
-          repo init --depth=1 -u https://googlesource.com -b common-android15-6.6-lts
+          repo init --depth=1 --no-repo-verify -u https://googlesource.com -b common-android15-6.6-lts
           repo sync -c -j$(nproc --all) --no-tags --fail-fast
 
-      - name: Hack Kernel Config & Compile
+      - name: Hack Kernel Config & Compile via Bazel
         run: |
           cd android-kernel/common
           echo "CONFIG_MODVERSIONS=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_MODULE_FORCE_LOAD=y" >> arch/arm64/configs/gki_defconfig
           cd ..
-          tools/bazel run //common:kernel_aarch64_dist
+          export REPO_URL="https://android.googlesource.com"
+          export GLOBS_URL="https://android.googlesource.com"
+          tools/bazel --output_user_root=$GITHUB_WORKSPACE/bazel_root run //common:kernel_aarch64_dist
 
       - name: Upload Finished GKI Image
         uses: actions/upload-artifact@v4
