@@ -25,7 +25,7 @@ jobs:
           mkdir -p android-kernel
           cd android-kernel
           ../bin/repo init --depth=1 --no-repo-verify --repo-url=https://googlesource.com -u https://googlesource.com -b common-android15-6.6-lts
-          ../bin/repo sync -c -j$(nproc --all) --no-tags --fail-fast
+          ../bin/repo sync -c -j$(nproc --all) --no-tags --no-clone-bundle --fail-fast
 
       - name: Compile via Bazel using Defconfig Fragments
         run: |
