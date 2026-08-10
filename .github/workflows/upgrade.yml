@@ -6,20 +6,30 @@ jobs:
   build-kernel:
     runs-on: ubuntu-latest
     steps:
-      - name: Free Up Disk Space
-        uses: easimon/maximize-build-space@master
-        with:
-          root-reserve-mb: 8192
-          remove-dotnet: 'true'
-          remove-android: 'true'
+      - name: Install Pure Cross-Compiler Tools
+        run: |
+          sudo apt-get clean
+          sudo apt-get update
+          sudo apt-get install -y bc bison flex libssl-dev crossbuild-essential-arm64 git libelf-dev curl python3 clang llvm lld
 
-      - name: Run GKI Safe Kernel Builder Action
-        uses: xiaoleGun/KernelSU_Action@main
+      - name: Clone Official Android 15 Kernel Source
+        uses: actions/checkout@v4
         with:
-          kernel-url: https://googlesource.com
-          kernel-branch: android15-6.6
-          config: gki_defconfig
-          arch: arm64
-          android-version: 16
-          ksu-version: main
-          enable-ksu: false
+          repository: aosp-mirror-neo/kernel_common
+          ref: android15-6.6-lts
+          path: common
+          fetch-depth: 1
+
+      - name: Run Direct Hardware Build Engine
+        run: |
+          cd common
+          echo "CONFIG_MODVERSIONS=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_MODULE_FORCE_LOAD=y" >> arch/arm64/configs/gki_defconfig
+          make O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang HOSTCC=clang LINKER=ld.lld gki_defconfig
+          make O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang HOSTCC=clang LINKER=ld.lld -j$(nproc)
+
+      - name: Upload Finished GKI Image
+        uses: actions/upload-artifact@v4
+        with:
+          name: Clean-GKI-Image
+          path: common/out/arch/arm64/boot/Image.gz
