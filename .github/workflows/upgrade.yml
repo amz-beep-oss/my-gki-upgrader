@@ -1,6 +1,6 @@
 name: GKI Pure Subversion Upgrade (Android 16)
 on:
-  workflow_dispatch: # Manuel başlatma butonu
+  workflow_dispatch:
 
 jobs:
   build-kernel:
@@ -16,9 +16,10 @@ jobs:
       - name: Run GKI Kernel Build Action
         uses: dabao1955/kernel_build_action@main
         with:
-          kernel-url: https://android.googlesource.com/kernel/common
+          kernel-url: https://googlesource.com
           kernel-branch: android15-6.6
           config: gki_defconfig
           arch: arm64
-          android-version: 16  # Burayı Android 16 derleme araçları için güncelledik!
+          android-version: 16
           aosp-clang: true
+          aosp-gcc: true
