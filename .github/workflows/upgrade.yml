@@ -6,11 +6,11 @@ jobs:
   build-kernel:
     runs-on: ubuntu-latest
     steps:
-      - name: Install Dependencies
+      - name: Install System Dependencies & Clang
         run: |
           sudo apt-get clean
           sudo apt-get update
-          sudo apt-get install -y bc bison flex libssl-dev crossbuild-essential-arm64 git libelf-dev curl python3
+          sudo apt-get install -y bc bison flex libssl-dev crossbuild-essential-arm64 git libelf-dev curl python3 clang llvm lld
 
       - name: Clone Kernel Common Source via Official Checkout
         uses: actions/checkout@v4
@@ -20,22 +20,13 @@ jobs:
           path: common
           fetch-depth: 1
 
-      - name: Clone Google Official Clang via Official Checkout
-        uses: actions/checkout@v4
-        with:
-          repository: aosp-mirror-neo/platform_prebuilts_clang_host_linux-x86
-          ref: main
-          path: clang-llvm
-          fetch-depth: 1
-
       - name: Compile Custom GKI Kernel
         run: |
-          export PATH=$GITHUB_WORKSPACE/clang-llvm/clang-stable/bin:$PATH
           cd common
           echo "CONFIG_MODVERSIONS=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_MODULE_FORCE_LOAD=y" >> arch/arm64/configs/gki_defconfig
-          make O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang gki_defconfig
-          make O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang -j$(nproc)
+          make O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang HOSTCC=clang LINKER=ld.lld gki_defconfig
+          make O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang HOSTCC=clang LINKER=ld.lld -j$(nproc)
 
       - name: Upload Finished GKI Image
         uses: actions/upload-artifact@v4
