@@ -28,20 +28,18 @@ jobs:
           path: build
           fetch-depth: 1
 
-      - name: Create Missing Android Execution Symlinks
+      - name: Create Absolute Execution Symlinks
         run: |
-          # Re-create the required tools directory that repo-init usually handles
           mkdir -p tools
-          # Link Google's official entry-point to your workspace root
-          ln -s ../build/kernel/kleaf/bazel.sh tools/bazel
+          ln -sf $GITHUB_WORKSPACE/build/kernel/kleaf/bazel.sh tools/bazel
+          chmod +x tools/bazel
+          chmod +x $GITHUB_WORKSPACE/build/kernel/kleaf/bazel.sh
 
       - name: Compile via Official Google Bazel Engine
         run: |
           export REPO_URL="https://googlesource.com"
           export GLOBS_URL="https://googlesource.com"
-          
-          # Use the correct execution path with explicit kconfig overrides
-          tools/bazel --output_user_root=$GITHUB_WORKSPACE/bazel_root run \
+          ./tools/bazel --output_user_root=$GITHUB_WORKSPACE/bazel_root run \
             --kconfig_add=CONFIG_MODVERSIONS=y \
             --kconfig_add=CONFIG_MODULE_FORCE_LOAD=y \
             //common:kernel_aarch64_dist
