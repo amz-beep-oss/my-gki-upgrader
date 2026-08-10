@@ -35,9 +35,9 @@ jobs:
       - name: Prepare Clean Execution Tools
         run: |
           cd workspace
-          cp build/kernel/kleaf/bazel.sh tools/bazel
+          cp build/kleaf/bazel.sh tools/bazel
           chmod +x tools/bazel
-          chmod +x build/kernel/kleaf/bazel.sh
+          chmod +x build/kleaf/bazel.sh
 
       - name: Inject Strict Sub-Version Spoofing
         run: |
