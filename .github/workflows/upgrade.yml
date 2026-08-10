@@ -20,14 +20,6 @@ jobs:
           path: common
           fetch-depth: 1
 
-      - name: Clone Kernel Build Tools via Official Checkout
-        uses: actions/checkout@v4
-        with:
-          repository: aosp-mirror-neo/kernel_build
-          ref: android15-6.6-lts
-          path: build
-          fetch-depth: 1
-
       - name: Download Official Clang Compiler
         run: |
           git clone https://googlesource.com --depth=1 -b main clang-llvm
