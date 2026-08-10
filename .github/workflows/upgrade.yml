@@ -19,10 +19,21 @@ jobs:
         run: |
           git config --global user.name "GitHub-Actions"
           git config --global user.email "actions@github.com"
+          
+          # Repo aracının kendi güncelleme mekanizmasını tamamen kapatıyoruz
+          export REPO_SKIP_BOOTSTRAP=1
+          
+          # Hatalı adrese gitmeye çalışan tüm alt süreçleri doğru adrese yönlendiriyoruz
+          export REPO_URL="https://googlesource.com"
+          
           mkdir android-kernel
           cd android-kernel
-          repo init --depth=1 --no-repo-verify -u https://googlesource.com -b common-android15-6.6-lts
-          repo sync -c -j$(nproc --all) --no-tags --fail-fast
+          
+          # --no-clone-bundle parametresiyle googlesource'un eksik CDN yönlendirmelerini bypass ediyoruz
+          repo init --depth=1 --no-repo-verify --no-clone-bundle -u https://googlesource.com -b common-android15-6.6-lts
+          
+          # Senkronizasyonu başlatıyoruz
+          repo sync -c -j$(nproc --all) --no-tags --no-clone-bundle --fail-fast
 
       - name: Hack Kernel Config & Compile via Bazel
         run: |
@@ -30,8 +41,8 @@ jobs:
           echo "CONFIG_MODVERSIONS=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_MODULE_FORCE_LOAD=y" >> arch/arm64/configs/gki_defconfig
           cd ..
-          export REPO_URL="https://googlesource.com"
-          export GLOBS_URL="https://googlesource.com"
+          export REPO_URL="https://android.googlesource.com"
+          export GLOBS_URL="https://android.googlesource.com"
           tools/bazel --output_user_root=$GITHUB_WORKSPACE/bazel_root run //common:kernel_aarch64_dist
 
       - name: Upload Finished GKI Image
