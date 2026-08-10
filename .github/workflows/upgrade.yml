@@ -9,31 +9,23 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install Google Repo Tool & Dependencies
+      - name: Install Dependencies
         run: |
           sudo apt-get clean
           sudo apt-get update
-          sudo apt-get install -y bc bison flex libssl-dev crossbuild-essential-arm64 git libelf-dev repo
+          sudo apt-get install -y bc bison flex libssl-dev crossbuild-essential-arm64 git libelf-dev curl
 
       - name: Initialize and Sync Official AOSP Kernel Source
         run: |
           git config --global user.name "GitHub-Actions"
           git config --global user.email "actions@github.com"
-          
-          # Repo aracının kendi güncelleme mekanizmasını tamamen kapatıyoruz
-          export REPO_SKIP_BOOTSTRAP=1
-          
-          # Hatalı adrese gitmeye çalışan tüm alt süreçleri doğru adrese yönlendiriyoruz
-          export REPO_URL="https://googlesource.com"
-          
+          mkdir -p bin
+          curl https://googleapis.com > bin/repo
+          chmod a+x bin/repo
           mkdir android-kernel
           cd android-kernel
-          
-          # --no-clone-bundle parametresiyle googlesource'un eksik CDN yönlendirmelerini bypass ediyoruz
-          repo init --depth=1 --no-repo-verify --no-clone-bundle -u https://googlesource.com -b common-android15-6.6-lts
-          
-          # Senkronizasyonu başlatıyoruz
-          repo sync -c -j$(nproc --all) --no-tags --no-clone-bundle --fail-fast
+          ../bin/repo init --depth=1 --no-repo-verify --repo-url=https://gerrit.googlesource.com/git-repo -u https://googlesource.com -b common-android15-6.6-lts
+          ../bin/repo sync -c -j$(nproc --all) --no-tags --fail-fast
 
       - name: Hack Kernel Config & Compile via Bazel
         run: |
