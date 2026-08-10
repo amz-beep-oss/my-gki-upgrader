@@ -13,28 +13,30 @@ jobs:
           remove-dotnet: 'true'
           remove-android: 'true'
 
-      - name: Install Dependencies
+      - name: Install Google Repo Tool & Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y bc bison flex libssl-dev crossbuild-essential-arm64 git libelf-dev
+          sudo apt-get install -y bc bison flex libssl-dev crossbuild-essential-arm64 git libelf-dev repo
 
-      - name: Clone Official Android 15 Kernel Source
-        run: git clone https://googlesource.com --depth=1 -b android15-6.6 common
-          
-      - name: Download Google Official Clang Compiler
-        run: git clone https://googlesource.com --depth=1 -b main clang-llvm
-
-      - name: Run Clean Kernel Compilation
+      - name: Initialize and Sync Official AOSP Kernel Source
         run: |
-          cd common
+          git config --global user.name "GitHub-Actions"
+          git config --global user.email "actions@github.com"
+          mkdir android-kernel
+          cd android-kernel
+          repo init --depth=1 -u https://googlesource.com -b common-android15-6.6-lts
+          repo sync -c -j$(nproc --all) --no-tags --fail-fast
+
+      - name: Hack Kernel Config & Compile
+        run: |
+          cd android-kernel/common
           echo "CONFIG_MODVERSIONS=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_MODULE_FORCE_LOAD=y" >> arch/arm64/configs/gki_defconfig
-          export PATH=$GITHUB_WORKSPACE/clang-llvm/clang-stable/bin:$PATH
-          make O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang gki_defconfig
-          make O=out ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang -j$(nproc)
+          cd ..
+          tools/bazel run //common:kernel_aarch64_dist
 
       - name: Upload Finished GKI Image
         uses: actions/upload-artifact@v4
         with:
           name: Clean-GKI-Image
-          path: common/out/arch/arm64/boot/Image.gz
+          path: android-kernel/out/android15-6.6/dist/Image.gz
