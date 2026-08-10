@@ -12,16 +12,32 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y bc bison flex libssl-dev crossbuild-essential-arm64 git libelf-dev curl python3 lz4 zstd ccache
 
-      - name: Create Clean Workspace Tree
+      - name: Setup Direct Workspace Folders
         run: |
           mkdir -p workspace/tools
+
+      - name: Clone GKI Kernel Core via Official Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: aosp-mirror-neo/kernel_common
+          ref: android15-6.6-lts
+          path: workspace/common
+          fetch-depth: 1
+
+      - name: Clone Google Kleaf Bazel Tools via Official Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: aosp-mirror-neo/kernel_build
+          ref: main
+          path: workspace/build
+          fetch-depth: 1
+
+      - name: Prepare Clean Execution Tools
+        run: |
           cd workspace
-          
-          git clone --depth=1 -b android15-6.6-lts https://github.com common
-          git clone --depth=1 -b main https://github.com build
-          
           cp build/kernel/kleaf/bazel.sh tools/bazel
           chmod +x tools/bazel
+          chmod +x build/kernel/kleaf/bazel.sh
 
       - name: Inject Strict Sub-Version Spoofing
         run: |
