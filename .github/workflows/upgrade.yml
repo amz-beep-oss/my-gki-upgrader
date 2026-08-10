@@ -35,16 +35,18 @@ jobs:
       - name: Prepare Clean Execution Tools
         run: |
           cd workspace
+          # Copy BOTH companion files into the tools folder
           cp build/kleaf/bazel.sh tools/bazel
+          cp build/kleaf/bazel.py tools/bazel.py
           chmod +x tools/bazel
+          chmod +x tools/bazel.py
           chmod +x build/kleaf/bazel.sh
+          chmod +x build/kleaf/bazel.py
 
       - name: Mock Google Prebuilt Python Path
         run: |
           cd workspace
-          # Physically create the folder structure Google's script is hunting for
           mkdir -p tools/prebuilts/build-tools/linux_musl-x86/bin/
-          # Create a link from their expected file path directly to the runner's real Python3
           ln -sf /usr/bin/python3 tools/prebuilts/build-tools/linux_musl-x86/bin/py3-cmd
 
       - name: Inject Strict Sub-Version Spoofing
