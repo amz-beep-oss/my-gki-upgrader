@@ -28,11 +28,23 @@ jobs:
           path: build
           fetch-depth: 1
 
+      - name: Create Missing Android Execution Symlinks
+        run: |
+          # Re-create the required tools directory that repo-init usually handles
+          mkdir -p tools
+          # Link Google's official entry-point to your workspace root
+          ln -s ../build/kernel/kleaf/bazel.sh tools/bazel
+
       - name: Compile via Official Google Bazel Engine
         run: |
           export REPO_URL="https://googlesource.com"
           export GLOBS_URL="https://googlesource.com"
-          build/kernel/kleaf/bazel.sh --output_user_root=$GITHUB_WORKSPACE/bazel_root run //common:kernel_aarch64_dist -- --kconfig_add CONFIG_MODVERSIONS=y --kconfig_add CONFIG_MODULE_FORCE_LOAD=y
+          
+          # Use the correct execution path with explicit kconfig overrides
+          tools/bazel --output_user_root=$GITHUB_WORKSPACE/bazel_root run \
+            --kconfig_add=CONFIG_MODVERSIONS=y \
+            --kconfig_add=CONFIG_MODULE_FORCE_LOAD=y \
+            //common:kernel_aarch64_dist
 
       - name: Upload Finished GKI Image
         uses: actions/upload-artifact@v4
