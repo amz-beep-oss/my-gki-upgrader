@@ -25,13 +25,11 @@ jobs:
           ./bin/repo init --depth=1 --no-repo-verify --repo-url=https://googlesource.com -u https://googlesource.com -b common-android15-6.6-lts
           ./bin/repo sync -c -j$(nproc --all) --no-tags --fail-fast
 
-      - name: Hack Kernel Config & Compile via Bazel
+      - name: Compile via Bazel using Defconfig Fragments
         run: |
-          echo "CONFIG_MODVERSIONS=y" >> kernel/common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_MODULE_FORCE_LOAD=y" >> kernel/common/arch/arm64/configs/gki_defconfig
-          export REPO_URL="https://googlesource.com"
-          export GLOBS_URL="https://googlesource.com"
-          tools/bazel --output_user_root=$GITHUB_WORKSPACE/bazel_root run //kernel/common:kernel_aarch64_dist
+          export REPO_URL="https://android.googlesource.com"
+          export GLOBS_URL="https://android.googlesource.com"
+          tools/bazel --output_user_root=$GITHUB_WORKSPACE/bazel_root run //common:kernel_aarch64_dist -- --kconfig_add=CONFIG_MODVERSIONS=y --kconfig_add=CONFIG_MODULE_FORCE_LOAD=y
 
       - name: Upload Finished GKI Image
         uses: actions/upload-artifact@v4
