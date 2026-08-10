@@ -1,0 +1,24 @@
+name: GKI Pure Subversion Upgrade (Android 16)
+on:
+  workflow_dispatch: # Manuel başlatma butonu
+
+jobs:
+  build-kernel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Free Up Disk Space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 8192
+          remove-dotnet: 'true'
+          remove-android: 'true'
+
+      - name: Run GKI Kernel Build Action
+        uses: dabao1955/kernel_build_action@main
+        with:
+          kernel-url: https://android.googlesource.com/kernel/common
+          kernel-branch: android15-6.6
+          config: gki_defconfig
+          arch: arm64
+          android-version: 16  # Burayı Android 16 derleme araçları için güncelledik!
+          aosp-clang: true
