@@ -29,28 +29,47 @@ jobs:
         with:
           repository: aosp-mirror-neo/kernel_build
           ref: main
-          path: workspace/build
+          # FIX 1: Android strictly expects these tools in build/kernel
+          path: workspace/build/kernel 
           fetch-depth: 1
 
-      - name: Prepare Clean Execution Tools
+      - name: Prepare Clean Execution Tools (Fix Workspace Root)
         run: |
           cd workspace
-          ln -sf ../build/kleaf/bazel.sh tools/bazel
+          
+          # Link the execution engine
+          ln -sf ../build/kernel/kleaf/bazel.sh tools/bazel
+          
+          # FIX 2: Manually create the root boundaries that `repo sync` normally creates.
+          # This specifically stops the "Unable to determine root of repository" error.
+          ln -sf build/kernel/kleaf/bazel.WORKSPACE WORKSPACE.bazel
+          ln -sf build/kernel/kleaf/bazel.BUILD BUILD.bazel
+          
+          # Modern Android 15/16 Kleaf uses Bzlmod for dependencies, link it if present
+          if [ -f build/kernel/kleaf/bzlmod/bazel.MODULE.bazel ]; then
+            ln -sf build/kernel/kleaf/bzlmod/bazel.MODULE.bazel MODULE.bazel
+          elif [ -f build/kernel/kleaf/bazel.MODULE.bazel ]; then
+            ln -sf build/kernel/kleaf/bazel.MODULE.bazel MODULE.bazel
+          fi
+          
+          # Failsafe for older Bazel versions
+          touch WORKSPACE
 
       - name: Mock Google Prebuilt Python Path
         run: |
           cd workspace
+          
           # Root level prebuilts mock
           mkdir -p prebuilts/build-tools/linux_musl-x86/bin/
           ln -sf /usr/bin/python3 prebuilts/build-tools/linux_musl-x86/bin/py3-cmd
           mkdir -p prebuilts/build-tools/path/linux-x86/bin/
           ln -sf /usr/bin/python3 prebuilts/build-tools/path/linux-x86/bin/py3-cmd
 
-          # Kleaf relative path prebuilts mock (fixes line 22 error)
-          mkdir -p build/kleaf/prebuilts/build-tools/linux_musl-x86/bin/
-          ln -sf /usr/bin/python3 build/kleaf/prebuilts/build-tools/linux_musl-x86/bin/py3-cmd
-          mkdir -p build/kleaf/prebuilts/build-tools/path/linux-x86/bin/
-          ln -sf /usr/bin/python3 build/kleaf/prebuilts/build-tools/path/linux-x86/bin/py3-cmd
+          # Kleaf relative path mock (Updated to match the new build/kernel path)
+          mkdir -p build/kernel/kleaf/prebuilts/build-tools/linux_musl-x86/bin/
+          ln -sf /usr/bin/python3 build/kernel/kleaf/prebuilts/build-tools/linux_musl-x86/bin/py3-cmd
+          mkdir -p build/kernel/kleaf/prebuilts/build-tools/path/linux-x86/bin/
+          ln -sf /usr/bin/python3 build/kernel/kleaf/prebuilts/build-tools/path/linux-x86/bin/py3-cmd
 
       - name: Merge Latest AOSP 6.6 Source (True Code Upgrade)
         run: |
