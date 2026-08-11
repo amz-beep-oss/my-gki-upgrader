@@ -35,35 +35,35 @@ jobs:
       - name: Prepare Clean Execution Tools
         run: |
           cd workspace
-          # Symlink bazel.sh so Python retains directory context to locate the 'impl' module
           ln -sf ../build/kleaf/bazel.sh tools/bazel
 
       - name: Mock Google Prebuilt Python Path
         run: |
           cd workspace
-          # Create prebuilts structure at workspace root where Kleaf expects it
+          # Root level prebuilts mock
           mkdir -p prebuilts/build-tools/linux_musl-x86/bin/
           ln -sf /usr/bin/python3 prebuilts/build-tools/linux_musl-x86/bin/py3-cmd
-          
           mkdir -p prebuilts/build-tools/path/linux-x86/bin/
           ln -sf /usr/bin/python3 prebuilts/build-tools/path/linux-x86/bin/py3-cmd
+
+          # Kleaf relative path prebuilts mock (fixes line 22 error)
+          mkdir -p build/kleaf/prebuilts/build-tools/linux_musl-x86/bin/
+          ln -sf /usr/bin/python3 build/kleaf/prebuilts/build-tools/linux_musl-x86/bin/py3-cmd
+          mkdir -p build/kleaf/prebuilts/build-tools/path/linux-x86/bin/
+          ln -sf /usr/bin/python3 build/kleaf/prebuilts/build-tools/path/linux-x86/bin/py3-cmd
 
       - name: Merge Latest AOSP 6.6 Source (True Code Upgrade)
         run: |
           cd workspace/common
           
-          # Configure Git environment for non-interactive execution
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
           
-          # Pull latest kernel code directly from official AOSP kernel/common
           git remote add aosp https://android.googlesource.com/kernel/common
           git fetch aosp android15-6.6 --depth=100
           
-          # Force auto-merge prioritizing upstream changes
           git merge FETCH_HEAD --no-edit -X theirs || git merge --abort
           
-          # Apply Android 16 signature hash suffix
           echo "-android15-8-g8e4be6b47e40-ab14134548-4k" > localversion-gki
 
       - name: Compile via Official Google Bazel Engine
