@@ -35,19 +35,20 @@ jobs:
       - name: Prepare Clean Execution Tools
         run: |
           cd workspace
-          # Copy BOTH companion files into the tools folder
-          cp build/kleaf/bazel.sh tools/bazel
-          cp build/kleaf/bazel.py tools/bazel.py
-          chmod +x tools/bazel
-          chmod +x tools/bazel.py
-          chmod +x build/kleaf/bazel.sh
-          chmod +x build/kleaf/bazel.py
+          # FIX: Create a symbolic link instead of copying. 
+          # This matches the official AOSP manifest behavior and allows Python to find 'impl'.
+          ln -sf ../build/kleaf/bazel.sh tools/bazel
 
       - name: Mock Google Prebuilt Python Path
         run: |
           cd workspace
-          mkdir -p tools/prebuilts/build-tools/linux_musl-x86/bin/
-          ln -sf /usr/bin/python3 tools/prebuilts/build-tools/linux_musl-x86/bin/py3-cmd
+          # FIX: Kleaf expects prebuilts to be at the root of the workspace, not inside tools/
+          mkdir -p prebuilts/build-tools/linux_musl-x86/bin/
+          ln -sf /usr/bin/python3 prebuilts/build-tools/linux_musl-x86/bin/py3-cmd
+          
+          # Adding standard glibc path fallback just in case Kleaf requests it
+          mkdir -p prebuilts/build-tools/path/linux-x86/bin/
+          ln -sf /usr/bin/python3 prebuilts/build-tools/path/linux-x86/bin/py3-cmd
 
       - name: Inject Strict Sub-Version Spoofing
         run: |
@@ -60,6 +61,9 @@ jobs:
           cd workspace
           export REPO_URL="https://googlesource.com"
           export GLOBS_URL="https://googlesource.com"
+          
+          # If Bazel complains about a missing WORKSPACE file, you may need to touch one:
+          # touch WORKSPACE.bazel
           
           ./tools/bazel --output_user_root=$GITHUB_WORKSPACE/bazel_root run \
             --sandbox_debug \
