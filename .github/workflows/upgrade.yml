@@ -63,7 +63,7 @@ jobs:
           mkdir -p build/kernel/kleaf/prebuilts/build-tools/path/linux-x86/bin/
           ln -sf /usr/bin/python3 build/kernel/kleaf/prebuilts/build-tools/path/linux-x86/bin/py3-cmd
 
-          # Provide Bazel 8.1.0 binary expected by Kleaf wrapper (Fixes unrecognized flag error)
+          # Provide Bazel 8.1.0 binary expected by Kleaf wrapper
           mkdir -p prebuilts/kernel-build-tools/bazel/linux-x86_64/
           curl -L https://github.com/bazelbuild/bazel/releases/download/8.1.0/bazel-8.1.0-linux-x86_64 -o prebuilts/kernel-build-tools/bazel/linux-x86_64/bazel
           chmod +x prebuilts/kernel-build-tools/bazel/linux-x86_64/bazel
@@ -90,7 +90,6 @@ jobs:
           
           ./tools/bazel --output_user_root=$GITHUB_WORKSPACE/bazel_root run \
             --sandbox_debug \
-            --no-sandbox \
             --spawn_strategy=local \
             --kconfig_add=CONFIG_MODVERSIONS=y \
             --kconfig_add=CONFIG_MODULE_FORCE_LOAD=y \
