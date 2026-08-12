@@ -47,6 +47,19 @@ jobs:
           
           touch WORKSPACE
 
+      - name: Clone Required Kleaf External Repositories
+        run: |
+          cd workspace
+          mkdir -p external
+          
+          # Clone the required external build dependencies expected by Kleaf workspace
+          for repo in bazelbuild-rules_pkg bazelbuild-rules_python bazelbuild-rules_cc bazelbuild-rules_license bazelbuild-rules_shell dtc dwarves kmod libcap; do
+            if [ ! -d "external/$repo" ]; then
+              echo "Cloning platform/external/$repo..."
+              git clone --depth=1 https://android.googlesource.com/platform/external/$repo external/$repo || true
+            fi
+          done
+
       - name: Mock Google Prebuilt Toolchains and Python Paths
         run: |
           cd workspace
