@@ -63,9 +63,9 @@ jobs:
           mkdir -p build/kernel/kleaf/prebuilts/build-tools/path/linux-x86/bin/
           ln -sf /usr/bin/python3 build/kernel/kleaf/prebuilts/build-tools/path/linux-x86/bin/py3-cmd
 
-          # Provide direct static Bazel binary expected by Kleaf wrapper
+          # Provide Bazel 8.1.0 binary expected by Kleaf wrapper (Fixes unrecognized flag error)
           mkdir -p prebuilts/kernel-build-tools/bazel/linux-x86_64/
-          curl -L https://github.com/bazelbuild/bazel/releases/download/7.2.0/bazel-7.2.0-linux-x86_64 -o prebuilts/kernel-build-tools/bazel/linux-x86_64/bazel
+          curl -L https://github.com/bazelbuild/bazel/releases/download/8.1.0/bazel-8.1.0-linux-x86_64 -o prebuilts/kernel-build-tools/bazel/linux-x86_64/bazel
           chmod +x prebuilts/kernel-build-tools/bazel/linux-x86_64/bazel
 
       - name: Merge Latest AOSP 6.6 Source (True Code Upgrade)
