@@ -65,6 +65,12 @@ jobs:
             echo "Cloning platform/external/python/absl-py..."
             git clone --depth=1 https://android.googlesource.com/platform/external/python/absl-py external/python/absl-py || true
           fi
+          
+          # Clone Bazel Skylib standard library
+          if [ ! -d "external/bazel-skylib" ]; then
+            echo "Cloning bazel-skylib..."
+            git clone --depth=1 https://github.com/bazelbuild/bazel-skylib external/bazel-skylib || true
+          fi
 
           # Clone official Bazel Central Registry to guarantee all Bzlmod modules exist
           if [ ! -d "external/bazelbuild-bazel-central-registry" ]; then
