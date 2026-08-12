@@ -68,7 +68,7 @@ jobs:
           curl -L https://github.com/bazelbuild/bazel/releases/download/8.1.0/bazel-8.1.0-linux-x86_64 -o prebuilts/kernel-build-tools/bazel/linux-x86_64/bazel
           chmod +x prebuilts/kernel-build-tools/bazel/linux-x86_64/bazel
 
-      - name: Merge Latest AOSP 6.6 Source (True Code Upgrade)
+      - name: Merge Latest AOSP 6.6 Source & Inject Config Options
         run: |
           cd workspace/common
           
@@ -82,6 +82,13 @@ jobs:
           
           echo "-android15-8-g8e4be6b47e40-ab14134548-4k" > localversion-gki
 
+          # Natively inject module configuration choices into the base defconfig
+          CONFIG_FILE="arch/arm64/configs/gki_defconfig"
+          if [ -f "$CONFIG_FILE" ]; then
+            echo "CONFIG_MODVERSIONS=y" >> "$CONFIG_FILE"
+            echo "CONFIG_MODULE_FORCE_LOAD=y" >> "$CONFIG_FILE"
+          fi
+
       - name: Compile via Official Google Bazel Engine
         run: |
           cd workspace
@@ -89,10 +96,7 @@ jobs:
           export GLOBS_URL="https://googlesource.com"
           
           ./tools/bazel --output_user_root=$GITHUB_WORKSPACE/bazel_root run \
-            --sandbox_debug \
             --spawn_strategy=local \
-            --kconfig_add=CONFIG_MODVERSIONS=y \
-            --kconfig_add=CONFIG_MODULE_FORCE_LOAD=y \
             //common:kernel_aarch64_dist
 
       - name: Upload Finished GKI Image
