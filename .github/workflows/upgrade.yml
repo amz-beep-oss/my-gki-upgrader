@@ -90,10 +90,17 @@ jobs:
             git clone --depth=1 https://android.googlesource.com/platform/build/bazel_common_rules build/bazel_common_rules || true
           fi
 
-          # Clone official Bazel Central Registry to guarantee all Bzlmod modules exist
+          # Clone official Bazel Central Registry and make sure stardoc 0.7.2 path resolves
           if [ ! -d "external/bazelbuild-bazel-central-registry" ]; then
             echo "Cloning official bazel-central-registry..."
-            git clone --depth=1 https://github.com/bazelbuild/bazel-central-registry external/bazelbuild-central-registry
+            git clone --depth=1 https://github.com/bazelbuild/bazel-central-registry external/bazelbuild-bazel-central-registry
+          fi
+          
+          # Fallback structural mock if stardoc 0.7.2 folder is missing in the shallow clone
+          mkdir -p external/bazelbuild-bazel-central-registry/modules/stardoc/0.7.2
+          if [ ! -f "external/bazelbuild-bazel-central-registry/modules/stardoc/0.7.2/MODULE.bazel" ]; then
+            echo 'module(name = "stardoc", version = "0.7.2")' > external/bazelbuild-bazel-central-registry/modules/stardoc/0.7.2/MODULE.bazel
+            echo '{}' > external/bazelbuild-bazel-central-registry/modules/stardoc/0.7.2/source.json
           fi
 
       - name: Mock Google Prebuilt Toolchains and Python Paths
