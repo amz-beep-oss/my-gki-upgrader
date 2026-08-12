@@ -60,7 +60,7 @@ jobs:
             fi
           done
 
-          # Clone official Bazel Central Registry to guarantee all Bzlmod modules (like stardoc) exist
+          # Clone official Bazel Central Registry to guarantee all Bzlmod modules exist
           if [ ! -d "external/bazelbuild-bazel-central-registry" ]; then
             echo "Cloning official bazel-central-registry..."
             git clone --depth=1 https://github.com/bazelbuild/bazel-central-registry external/bazelbuild-bazel-central-registry
@@ -82,10 +82,14 @@ jobs:
           mkdir -p build/kernel/kleaf/prebuilts/build-tools/path/linux-x86/bin/
           ln -sf /usr/bin/python3 build/kernel/kleaf/prebuilts/build-tools/path/linux-x86/bin/py3-cmd
 
-          # Provide Bazel 8.1.0 binary expected by Kleaf wrapper
+          # Fetch executable Bazel 8 binary cleanly
           mkdir -p prebuilts/kernel-build-tools/bazel/linux-x86_64/
-          curl -L https://github.com/bazelbuild/bazel/releases/download/8.1.0/bazel-8.1.0-linux-x86_64 -o prebuilts/kernel-build-tools/bazel/linux-x86_64/bazel
-          chmod +x prebuilts/kernel-build-tools/bazel/linux-x86_64/bazel
+          BAZEL_TARGET="prebuilts/kernel-build-tools/bazel/linux-x86_64/bazel"
+          
+          curl -fL "https://github.com/bazelbuild/bazel/releases/download/8.0.0/bazel-8.0.0-linux-x86_64" -o "$BAZEL_TARGET" || \
+          curl -fL "https://github.com/bazelbuild/bazelisk/releases/download/v1.20.0/bazelisk-linux-amd64" -o "$BAZEL_TARGET"
+          
+          chmod +x "$BAZEL_TARGET"
 
       - name: Merge Latest AOSP 6.6 Source & Inject Config Options
         run: |
@@ -101,11 +105,15 @@ jobs:
           
           echo "-android15-8-g8e4be6b47e40-ab14134548-4k" > localversion-gki
 
-          # Natively inject module configuration choices into the base defconfig
+          # Inject module options + CAKE Bufferbloat killer into base defconfig
           CONFIG_FILE="arch/arm64/configs/gki_defconfig"
           if [ -f "$CONFIG_FILE" ]; then
             echo "CONFIG_MODVERSIONS=y" >> "$CONFIG_FILE"
             echo "CONFIG_MODULE_FORCE_LOAD=y" >> "$CONFIG_FILE"
+            
+            # Enable CAKE Qdisc
+            echo "CONFIG_NET_SCH_CAKE=y" >> "$CONFIG_FILE"
+            echo "CONFIG_NET_SCH_INGRESS=y" >> "$CONFIG_FILE"
           fi
 
       - name: Compile via Official Google Bazel Engine
