@@ -93,7 +93,7 @@ jobs:
           # Clone official Bazel Central Registry to guarantee all Bzlmod modules exist
           if [ ! -d "external/bazelbuild-bazel-central-registry" ]; then
             echo "Cloning official bazel-central-registry..."
-            git clone --depth=1 https://github.com/bazelbuild/bazel-central-registry external/bazelbuild-bazel-central-registry
+            git clone --depth=1 https://github.com/bazelbuild/bazel-central-registry external/bazelbuild-central-registry
           fi
 
       - name: Mock Google Prebuilt Toolchains and Python Paths
@@ -111,6 +111,11 @@ jobs:
           ln -sf /usr/bin/python3 build/kernel/kleaf/prebuilts/build-tools/linux_musl-x86/bin/py3-cmd
           mkdir -p build/kernel/kleaf/prebuilts/build-tools/path/linux-x86/bin/
           ln -sf /usr/bin/python3 build/kernel/kleaf/prebuilts/build-tools/path/linux-x86/bin/py3-cmd
+
+          # Fix Clang toolchain package path error by creating a valid Bazel package structure
+          mkdir -p prebuilts/clang/host/linux-x86/kleaf
+          touch prebuilts/clang/host/linux-x86/BUILD
+          touch prebuilts/clang/host/linux-x86/kleaf/BUILD
 
           # Fetch executable Bazel 8 binary with network retry protection
           mkdir -p prebuilts/kernel-build-tools/bazel/linux-x86_64/
