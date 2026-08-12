@@ -50,7 +50,7 @@ jobs:
       - name: Clone Required Kleaf External Repositories
         run: |
           cd workspace
-          mkdir -p external
+          mkdir -p external/python
           
           # Clone platform/external dependencies
           for repo in bazelbuild-rules_pkg bazelbuild-rules_python bazelbuild-rules_cc bazelbuild-rules_license bazelbuild-rules_shell dtc dwarves kmod libcap; do
@@ -59,6 +59,12 @@ jobs:
               git clone --depth=1 https://android.googlesource.com/platform/external/$repo external/$repo || true
             fi
           done
+
+          # Clone python dependencies expected by Kleaf
+          if [ ! -d "external/python/absl-py" ]; then
+            echo "Cloning platform/external/python/absl-py..."
+            git clone --depth=1 https://android.googlesource.com/platform/external/python/absl-py external/python/absl-py || true
+          fi
 
           # Clone official Bazel Central Registry to guarantee all Bzlmod modules exist
           if [ ! -d "external/bazelbuild-bazel-central-registry" ]; then
