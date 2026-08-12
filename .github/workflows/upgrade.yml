@@ -96,11 +96,16 @@ jobs:
             git clone --depth=1 https://github.com/bazelbuild/bazel-central-registry external/bazelbuild-bazel-central-registry
           fi
           
-          # Fallback structural mock if stardoc 0.7.2 folder is missing in the shallow clone
           mkdir -p external/bazelbuild-bazel-central-registry/modules/stardoc/0.7.2
           if [ ! -f "external/bazelbuild-bazel-central-registry/modules/stardoc/0.7.2/MODULE.bazel" ]; then
             echo 'module(name = "stardoc", version = "0.7.2")' > external/bazelbuild-bazel-central-registry/modules/stardoc/0.7.2/MODULE.bazel
             echo '{}' > external/bazelbuild-bazel-central-registry/modules/stardoc/0.7.2/source.json
+          fi
+
+          # Clone official AOSP Clang Host Prebuilts (Resolves missing clang_toolchain_repository.bzl)
+          if [ ! -d "prebuilts/clang/host/linux-x86" ]; then
+            echo "Cloning official prebuilts/clang/host/linux-x86..."
+            git clone --depth=1 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 prebuilts/clang/host/linux-x86
           fi
 
       - name: Mock Google Prebuilt Toolchains and Python Paths
@@ -118,11 +123,6 @@ jobs:
           ln -sf /usr/bin/python3 build/kernel/kleaf/prebuilts/build-tools/linux_musl-x86/bin/py3-cmd
           mkdir -p build/kernel/kleaf/prebuilts/build-tools/path/linux-x86/bin/
           ln -sf /usr/bin/python3 build/kernel/kleaf/prebuilts/build-tools/path/linux-x86/bin/py3-cmd
-
-          # Fix Clang toolchain package path error by creating a valid Bazel package structure
-          mkdir -p prebuilts/clang/host/linux-x86/kleaf
-          touch prebuilts/clang/host/linux-x86/BUILD
-          touch prebuilts/clang/host/linux-x86/kleaf/BUILD
 
           # Fetch executable Bazel 8 binary with network retry protection
           mkdir -p prebuilts/kernel-build-tools/bazel/linux-x86_64/
