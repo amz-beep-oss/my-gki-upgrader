@@ -77,6 +77,12 @@ jobs:
             echo "Cloning bazelbuild-platforms..."
             git clone --depth=1 https://github.com/bazelbuild/platforms external/bazelbuild-platforms || true
           fi
+          
+          # Clone Bazel Features helper
+          if [ ! -d "external/bazel-contrib-bazel_features" ]; then
+            echo "Cloning bazel-contrib-bazel_features..."
+            git clone --depth=1 https://github.com/bazel-contrib/bazel_features external/bazel-contrib-bazel_features || true
+          fi
 
           # Clone official Bazel Central Registry to guarantee all Bzlmod modules exist
           if [ ! -d "external/bazelbuild-bazel-central-registry" ]; then
@@ -105,7 +111,7 @@ jobs:
           BAZEL_TARGET="prebuilts/kernel-build-tools/bazel/linux-x86_64/bazel"
           
           curl -fL --retry 5 --retry-delay 3 --retry-all-errors \
-            "https://github.com/bazelbuild/bazel/releases/download/8.0.0/bazel-8.0.0-linux-x86_64" -o "$BAZEL_TARGET" || \
+            "https://github.com/bazelbuild/bazel/releases/download/8.1.0/bazel-8.1.0-linux-x86_64" -o "$BAZEL_TARGET" || \
           curl -fL --retry 5 --retry-delay 3 --retry-all-errors \
             "https://github.com/bazelbuild/bazelisk/releases/download/v1.20.0/bazelisk-linux-amd64" -o "$BAZEL_TARGET"
           
