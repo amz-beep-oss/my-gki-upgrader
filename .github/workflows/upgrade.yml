@@ -88,12 +88,14 @@ jobs:
           mkdir -p build/kernel/kleaf/prebuilts/build-tools/path/linux-x86/bin/
           ln -sf /usr/bin/python3 build/kernel/kleaf/prebuilts/build-tools/path/linux-x86/bin/py3-cmd
 
-          # Fetch executable Bazel 8 binary cleanly
+          # Fetch executable Bazel 8 binary with network retry protection
           mkdir -p prebuilts/kernel-build-tools/bazel/linux-x86_64/
           BAZEL_TARGET="prebuilts/kernel-build-tools/bazel/linux-x86_64/bazel"
           
-          curl -fL "https://github.com/bazelbuild/bazel/releases/download/8.0.0/bazel-8.0.0-linux-x86_64" -o "$BAZEL_TARGET" || \
-          curl -fL "https://github.com/bazelbuild/bazelisk/releases/download/v1.20.0/bazelisk-linux-amd64" -o "$BAZEL_TARGET"
+          curl -fL --retry 5 --retry-delay 3 --retry-all-errors \
+            "https://github.com/bazelbuild/bazel/releases/download/8.0.0/bazel-8.0.0-linux-x86_64" -o "$BAZEL_TARGET" || \
+          curl -fL --retry 5 --retry-delay 3 --retry-all-errors \
+            "https://github.com/bazelbuild/bazelisk/releases/download/v1.20.0/bazelisk-linux-amd64" -o "$BAZEL_TARGET"
           
           chmod +x "$BAZEL_TARGET"
 
