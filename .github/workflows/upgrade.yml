@@ -52,13 +52,19 @@ jobs:
           cd workspace
           mkdir -p external
           
-          # Clone the required external build dependencies expected by Kleaf workspace
+          # Clone platform/external dependencies
           for repo in bazelbuild-rules_pkg bazelbuild-rules_python bazelbuild-rules_cc bazelbuild-rules_license bazelbuild-rules_shell dtc dwarves kmod libcap; do
             if [ ! -d "external/$repo" ]; then
               echo "Cloning platform/external/$repo..."
               git clone --depth=1 https://android.googlesource.com/platform/external/$repo external/$repo || true
             fi
           done
+
+          # Clone official Bazel Central Registry to guarantee all Bzlmod modules (like stardoc) exist
+          if [ ! -d "external/bazelbuild-bazel-central-registry" ]; then
+            echo "Cloning official bazel-central-registry..."
+            git clone --depth=1 https://github.com/bazelbuild/bazel-central-registry external/bazelbuild-bazel-central-registry
+          fi
 
       - name: Mock Google Prebuilt Toolchains and Python Paths
         run: |
