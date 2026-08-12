@@ -84,6 +84,12 @@ jobs:
             git clone --depth=1 https://github.com/bazel-contrib/bazel_features external/bazel-contrib-bazel_features || true
           fi
 
+          # Clone Bazel Common Rules helper
+          if [ ! -d "build/bazel_common_rules" ]; then
+            echo "Cloning bazel_common_rules..."
+            git clone --depth=1 https://android.googlesource.com/platform/build/bazel_common_rules build/bazel_common_rules || true
+          fi
+
           # Clone official Bazel Central Registry to guarantee all Bzlmod modules exist
           if [ ! -d "external/bazelbuild-bazel-central-registry" ]; then
             echo "Cloning official bazel-central-registry..."
