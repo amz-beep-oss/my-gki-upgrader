@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: aosp-mirror-neo/kernel_build
-          ref: main
+          ref: android15-6.6
           path: workspace/build/kernel 
           fetch-depth: 1
 
@@ -102,7 +102,7 @@ jobs:
             echo '{}' > external/bazelbuild-bazel-central-registry/modules/stardoc/0.7.2/source.json
           fi
 
-          # Clone official AOSP Clang Host Prebuilts (Resolves missing clang_toolchain_repository.bzl)
+          # Clone official AOSP Clang Host Prebuilts
           if [ ! -d "prebuilts/clang/host/linux-x86" ]; then
             echo "Cloning official prebuilts/clang/host/linux-x86..."
             git clone --depth=1 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 prebuilts/clang/host/linux-x86
